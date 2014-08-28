@@ -16,6 +16,7 @@
    :fs.trash.interval 1440        ; should trash be on or off by default?
    :io.file.buffer.size 65536     ; maybe this should be checked vs hw page size
    :dfs.permissions.enabled true
+
    :mapred.map.tasks.speculative.execution true
    :mapred.reduce.tasks.speculative.execution false
 
@@ -23,17 +24,30 @@
    :mapred.reduce.tasks 5
    :mapred.submit.replication 10
    :mapred.compress.map.output true
-   :mapred.output.compression.type "BLOCK"})
+   :mapred.output.compression.type "BLOCK"
+   ;increase heap memory to avoid parquet error https://github.com/Parquet/parquet-mr/issues/176
+   :mapred.map.child.java.opts="-Xmx1024m"
+   })
 
 (def hadoop-class-details
   {:hadoop.rpc.socket.factory.class.default
    "org.apache.hadoop.net.StandardSocketFactory"
    :hadoop.rpc.socket.factory.class.ClientProtocol ""
    :hadoop.rpc.socket.factory.class.JobSubmissionProtocol ""
+
+   :hadoop.tmp.dir "/mnt/hadoop/tmp"
+   :dfs.data.dir "/mnt/hadoop/dfs/data"
+   :dfs.name.dir "/mnt/hadoop/dfs/name"
+   :mapred.local.dir "/mnt/hadoop/mapred/local"
+   :mapred.system.dir "/mnt/hadoop/mapred/system"
+   :fs.checkpoint.dir "/mnt/hadoop/dfs/secondary"
+
    :io.compression.codecs               ; LZO compression?
    (str
     "org.apache.hadoop.io.compress.DefaultCodec,"
-    "org.apache.hadoop.io.compress.GzipCodec")})
+    "org.apache.hadoop.io.compress.GzipCodec,"
+    "org.apache.hadoop.io.compress.SnappyCodec" ;added Snappy
+    )})
 
 ;;; http://www.flumotion.net/doc/flumotion/manual/en/trunk/html/section-configuration-system.html
 ;;; intel paper on tuning hadoop
